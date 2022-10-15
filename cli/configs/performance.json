@@ -1,0 +1,232 @@
+{ "identifier": "LOGIN",
+  "properties": {
+  "UNIQKEY": {
+    "constant": false,
+    "pos": 0,
+    "type": "str",
+    "unique": true,
+    "generation": {
+      "how": "composite",
+      "kwargs": {
+        "src": "prev",
+        "keys": [
+          "func.timestamp",
+          "LOGIN",
+          "VEHICLE_NUMBER"
+        ]
+      }
+    }
+  },
+  "INSERT_DATETIME": {
+    "constant": false,
+    "pos": 1,
+    "type": "datetime",
+    "unique": false,
+    "generation": {
+      "how": "direct",
+      "kwargs": {
+        "func": "func.datetime"
+      }
+    }
+  },
+  "STATUS": {
+    "constant": true,
+    "pos": 2,
+    "type": "int",
+    "unique": false,
+    "generation": {
+      "how": "direct",
+      "kwargs": {
+        "src": "prev",
+        "keys": [
+          "STATUS"
+        ]
+      }
+    }
+  },
+  "USERSTATUS": {
+    "constant": true,
+    "pos": 3,
+    "type": "int",
+    "unique": false,
+    "generation": {
+      "how": "direct",
+      "kwargs": {
+        "src": "prev",
+        "keys": [
+          "USERSTATUS"
+        ]
+      }
+    }
+  },
+  "PACKETID": {
+    "constant": false,
+    "pos": 4,
+    "type": "int",
+    "unique": false,
+    "generation": {
+      "how": "direct",
+      "kwargs": {
+        "func": "func.randint"
+      }
+    }
+  },
+  "LOGIN": {
+    "constant": true,
+    "pos": 5,
+    "type": "str",
+    "unique": false,
+    "generation": {
+      "how": "direct",
+      "kwargs": {
+        "src": "prev",
+        "keys": [
+          "LOGIN"
+        ]
+      }
+    }
+  },
+  "DRIVERNAME": {
+    "constant": true,
+    "pos": 6,
+    "type": "str",
+    "unique": false,
+    "generation": {
+      "how": "direct",
+      "kwargs": {
+        "src": "prev",
+        "keys": [
+          "DRIVERNAME"
+        ]
+      }
+    }
+  },
+  "VEHICLE_NUMBER": {
+    "constant": true,
+    "pos": 7,
+    "type": "int",
+    "unique": false,
+    "generation": {
+      "how": "direct",
+      "kwargs": {
+        "src": "prev",
+        "keys": [
+          "VEHICLE_NUMBER"
+        ]
+      }
+    }
+  },
+  "STRT_DATIME": {
+    "constant": false,
+    "pos": 8,
+    "type": "datetime",
+    "unique": false,
+    "generation": {
+      "how": "contiguous",
+      "kwargs": {
+        "src": "prev",
+        "follow": "END_DATIME"
+      }
+    }
+  },
+  "END_DATIME": {
+    "constant": false,
+    "pos": 9,
+    "type": "datetime",
+    "unique": false,
+    "generation": {
+      "how": "add_to",
+      "kwargs": {
+        "src": "curr",
+        "follow": "STRT_DATIME"
+      }
+    }
+  },
+  "LONG_IDLE_THRESH": {
+    "constant": true,
+    "pos": 10,
+    "type": "int",
+    "unique": false,
+    "generation": {
+      "how": "direct",
+      "kwargs": {
+        "src": "prev",
+        "keys": [
+          "LONG_IDLE_THRESH"
+        ]
+      }
+    }
+  },
+  "RPM_THRESH": {
+    "constant": true,
+    "pos": 11,
+    "type": "int",
+    "unique": false,
+    "generation": {
+      "how": "direct",
+      "kwargs": {
+        "src": "prev",
+        "keys": [
+          "RPM_THRESH"
+        ]
+      }
+    }
+  },
+  "OVER_SPEED_THRESH": {
+    "constant": true,
+    "pos": 12,
+    "type": "int",
+    "unique": false,
+    "generation": {
+      "how": "direct",
+      "kwargs": {
+        "src": "prev",
+        "keys": [
+          "OVER_SPEED_THRESH"
+        ]
+      }
+    }
+  },
+  "STRT_ODOM": {
+    "constant": false,
+    "pos": 13,
+    "type": "float",
+    "unique": false,
+    "generation": {
+      "how": "contiguous",
+      "kwargs": {
+        "src": "prev",
+        "follow": "END_ODOM"
+      }
+    }
+  },
+  "END_ODOM": {
+    "constant": false,
+    "pos": 14,
+    "type": "float",
+    "unique": false,
+    "generation": {
+      "how": "add_to",
+      "kwargs": {
+        "src": "curr",
+        "follow": "STRT_ODOM"
+      }
+    }
+  },
+  "TRAVELED_MILES": {
+    "constant": false,
+    "pos": 15,
+    "type": "int",
+    "unique": false,
+    "generation": {
+      "how": "diff",
+      "kwargs": {
+        "src": "curr",
+        "keys": [
+          "END_ODOM",
+          "STRT_ODOM"
+        ]
+      }
+    }
+  }
+}}

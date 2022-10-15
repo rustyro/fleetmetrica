@@ -8,6 +8,7 @@ __pycache__
 logs.txt
 logs.csv
 serverlessbak.yml
+mocks/
 
 # mypy
 .mypy_cache/
