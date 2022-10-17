@@ -21,7 +21,7 @@ sys.stdout = Logr(LOG_FILE_PATH)
 parser = argparse.ArgumentParser(
     description='Generate mock trucking data')
 parser.add_argument('-f', '--files', nargs='+', help='path to sample files used for generation')
-parser.add_argument('-dr', '--date_range', help='Date range for the mock dataset (DDMMYY-DDMMYY)')
+parser.add_argument('-dr', '--date_range', help='Date range for the mock dataset (MM-DD-YY:MM-DD-YY)')
 parser.add_argument('-ds', '--data_size', default=0, type=int, help='Number of records to generate in the dataset')
 parser.add_argument('-s', '--store', default="./mocks", type=str, help='Storage location for the generate files')
 parser.add_argument('-c', '--config', help='Datasource configuration type')
@@ -80,7 +80,9 @@ class Argz:
 
 
 class MetricObject(object):
-    """"""
+    """
+    An object instance of any entity that can be mocked
+    """
 
     def __init__(self, data: dict, conf: dict):
         """"""
@@ -95,7 +97,14 @@ class MetricObject(object):
             setattr(self, k, v)
         return data
 
-    def gen(self, size, conf, parent_mocks=None):
+    def gen(self, size: int, conf: dict, parent_mocks: list = None):
+        """
+        Generate additional mock entries based on the object instance
+        :param size: Number of records to generate from the object instance
+        :param conf: configuration details on how to populate values of the instance attributes
+        :param parent_mocks: Array of previously generated mocks that have a bearing on some values of the instance
+        :return:
+        """
         last_row = self.last_row
         curr_row = {}
         rows = []
@@ -143,6 +152,7 @@ class MetricObject(object):
             return funcs.get(func)(**kwargs.get("args", {}))
 
     def contiguous(self, src: str = None, follow: str = None, **kwargs):
+        """Set the current value to the value of another parameter of the instance either previous or current"""
         src_ = self.last_row
         if src != "prev":
             src_ = self.curr_row

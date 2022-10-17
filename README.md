@@ -50,6 +50,8 @@ utility
 
 The CLI accepts the following parameters:
 
+- `files`[required]: a list of sample files in the dataset to be used as input to generate the mock data. It is 
+  paired with the `config` parameter that describes how to process the files in the dataset
 - `date_range`[optional]: a date range for which you want to generate mock data for with the format mm-dd-yy:mm-dd-yy 
   e.g 10-13-22:10-16-22. If not specified it defaults to 7 days and accepts a max of 30 days
 - `data_size`[optional]: Number of records to generate in the mock data, done with a best effort approach. Defaults to 
