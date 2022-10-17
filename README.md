@@ -43,15 +43,15 @@ utility
 |  PGHOST        | Database host                            | false       |                                                |
 |  PGPORT          | Postgres database port, defaults to 5432 | false       |                                                |
 |  S3_BUCKET_NAME  | AWS s3 bucket to save generated files to | conditional | required when running as a serverless function |
-|  AWS_ACCESS_KEY_ID  | Access key ID for AWS                    | conditional | required when running as a serverless function |
-|  AWS_SECRET_ACCESS_KEY  | secret key ID for AWS                    |  conditional           |  required when running as a serverless function                                              |
+|  AWS_ACCESS_KEY  | Access key ID for AWS                    | conditional | required when running as a serverless function |
+|  AWS_SECRET_KEY  | secret key ID for AWS                    |  conditional           |  required when running as a serverless function                                              |
 
 ## Running The App
 
 The CLI accepts the following parameters:
 
 - `date_range`[optional]: a date range for which you want to generate mock data for with the format mm-dd-yy:mm-dd-yy 
-  e.g 10-13-22:10-16-22. If not specified it defaults to 7 days
+  e.g 10-13-22:10-16-22. If not specified it defaults to 7 days and accepts a max of 30 days
 - `data_size`[optional]: Number of records to generate in the mock data, done with a best effort approach. Defaults to 
   2000
 - `config`[required]: data source configuration, a predefined config to process the file with, currently there are 

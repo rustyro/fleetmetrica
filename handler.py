@@ -14,7 +14,7 @@ def fleetmocker(event, context):
     success, status = True, 200
     try:
         cli = CLI(parsed_args).run()
-        upload_resp = s3.upload_directory(cli.store, config.S3_BUCKET_NAME, cli.store_name)
+        upload_resp = s3.upload_directory(cli.store, config.S3_BUCKET_NAME)
         try:
             cli.flush_logs_to_db()
         except:

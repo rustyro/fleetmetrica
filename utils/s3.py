@@ -26,7 +26,7 @@ class S3:
         filename = filename or filepath.split("/")[-1]
         self.client.upload_file(filepath, bucket, filename)
 
-    def upload_directory(self, dir_path: str, bucket: str = None, dir_name: str = None):
+    def upload_directory(self, dir_path: str, bucket: str = None, strip: str = "tmp/"):
         """
         Upload an entire directory to s3
         Todo[rotola]: Add option to zip the directory and upload once
@@ -38,6 +38,7 @@ class S3:
             path = path.replace("\\", "/")
             directory_name = path.strip('./').lstrip("/")
             for file in files:
+                directory_name = "".join(directory_name.split(strip))
                 self.upload_file(os.path.join(path, file), bucket, directory_name + '/' + file)
 
 

@@ -240,6 +240,8 @@ class CLI(object):
             log.error(msg)
             raise Exception(msg)
         diff_days = end - start
+        if diff_days.days > 30:
+            raise Exception("Max number of days exceeded. Enter a range <= 30 days")
         dates = [start + timedelta(days=i) for i in range(diff_days.days) if diff_days]
         dates = dates if dates else [start]
         return dates
