@@ -1,4 +1,9 @@
-{ "identifier": "LOGIN",
+{
+  "no_of_files": 1,
+  "driver_file_tag": "performance",
+  "execution_order": ["performance"],
+  "identifier": "LOGIN",
+  "sort_by": "STRT_DATIME",
   "properties": {
   "UNIQKEY": {
     "constant": false,
@@ -229,4 +234,5 @@
       }
     }
   }
-}}
+}
+}

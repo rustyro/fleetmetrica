@@ -1,0 +1,391 @@
+{
+  "identifier": "driver_name",
+  "comment_delimiter": {
+    "column": "driver_name",
+    "delimiter": "---"
+  },
+  "depends_on": ["summary"],
+  "size": 0,
+  "properties": {
+    "driver_name": {
+      "type": "str",
+      "unique": false,
+      "generation": {
+        "how": "direct",
+        "kwargs": {
+          "src": "prev",
+          "keys": [
+            "driver_name"
+          ]
+        }
+      }
+    },
+    "vehicle_type": {
+      "constant": true,
+      "pos": 3,
+      "type": "str",
+      "unique": false,
+      "generation": {
+        "how": "direct",
+        "kwargs": {
+          "src": "prev",
+          "keys": [
+            "vehicle_type"
+          ]
+        }
+      }
+    },
+    "percent_speeding": {
+      "type": "str",
+      "unique": false,
+      "generation": {
+        "how": "direct",
+        "kwargs": {
+          "src": "prev",
+          "keys": [
+            "vehicle_type"
+          ]
+        }
+      }
+    },
+    "max_speed_non-interstate/freeway": {
+      "type": "str",
+      "unique": false,
+      "generation": {
+        "how": "direct",
+        "kwargs": {
+          "src": "prev",
+          "keys": [
+            "vehicle_type"
+          ]
+        }
+      }
+    },
+    "percent_speeding_non-interstate/freeway": {
+      "constant": true,
+      "pos": 3,
+      "type": "str",
+      "unique": false,
+      "generation": {
+        "how": "direct",
+        "kwargs": {
+          "src": "prev",
+          "keys": [
+            "vehicle_type"
+          ]
+        }
+      }
+    },
+    "max_speed_interstate/freeway": {
+      "constant": true,
+      "pos": 3,
+      "type": "str",
+      "unique": false,
+      "generation": {
+        "how": "direct",
+        "kwargs": {
+          "src": "prev",
+          "keys": [
+            "vehicle_type"
+          ]
+        }
+      }
+    },
+    "percent_speeding_interstate/freeway": {
+      "constant": true,
+      "pos": 3,
+      "type": "str",
+      "unique": false,
+      "generation": {
+        "how": "direct",
+        "kwargs": {
+          "src": "prev",
+          "keys": [
+            "vehicle_type"
+          ]
+        }
+      }
+    },
+    "worst_incident_date": {
+      "constant": false,
+      "pos": 4,
+      "type": "int",
+      "unique": false,
+      "generation": {
+        "how": "add_to",
+        "kwargs": {
+          "src": "prev",
+          "follow": "time"
+        }
+      }
+    },
+    "incident_location": {
+      "constant": true,
+      "pos": 5,
+      "type": "str",
+      "unique": false,
+      "generation": {
+        "how": "direct",
+        "kwargs": {
+          "src": "prev",
+          "keys": [
+            "map"
+          ]
+        }
+      }
+    },
+    "speed_limit": {
+      "constant": true,
+      "pos": 6,
+      "type": "str",
+      "unique": false,
+      "generation": {
+        "how": "direct",
+        "kwargs": {
+          "func": "func.randchoice",
+          "args": {
+            "samples": [
+              64,
+              50,
+              80,
+              90,
+              100,
+              105,
+              113
+            ]
+          }
+        }
+      }
+    },
+    "speed": {
+      "constant": true,
+      "pos": 7,
+      "type": "int",
+      "unique": false,
+      "generation": {
+        "how": "add_to",
+        "kwargs": {
+          "src": "curr",
+          "follow": "speed_limit",
+          "args": {
+            "range_": [
+              3,
+              15
+            ]
+          }
+        }
+      }
+    },
+    "speed_type": {
+      "constant": false,
+      "pos": 8,
+      "type": "datetime",
+      "unique": false,
+      "generation": {
+        "how": "direct",
+        "kwargs": {
+          "src": "prev",
+          "keys": [
+            "speed_type"
+          ]
+        }
+      }
+    },
+    "speed_cap": {
+      "constant": false,
+      "pos": 9,
+      "type": "datetime",
+      "unique": false,
+      "generation": {
+        "how": "direct",
+        "kwargs": {
+          "src": "prev",
+          "keys": [
+            "speed_cap"
+          ]
+        }
+      }
+    },
+    "custom_speed_restriction": {
+      "constant": true,
+      "pos": 10,
+      "type": "int",
+      "unique": false,
+      "generation": {
+        "how": "direct",
+        "kwargs": {
+          "src": "prev",
+          "keys": [
+            "custom_speed_restriction"
+          ]
+        }
+      }
+    },
+    "distance_driven": {
+      "constant": true,
+      "pos": 11,
+      "type": "int",
+      "unique": false,
+      "generation": {
+        "how": "direct",
+        "kwargs": {
+          "src": "prev",
+          "keys": [
+            "driver_id"
+          ]
+        }
+      }
+    },
+    "driver_id": {
+      "constant": true,
+      "pos": 11,
+      "type": "int",
+      "unique": false,
+      "generation": {
+        "how": "direct",
+        "kwargs": {
+          "src": "prev",
+          "keys": [
+            "driver_id"
+          ]
+        }
+      }
+    },
+    "url": {
+      "constant": true,
+      "pos": 12,
+      "type": "int",
+      "unique": false,
+      "generation": {
+        "how": "direct",
+        "kwargs": {
+          "src": "prev",
+          "keys": [
+            "url"
+          ]
+        }
+      }
+    },
+    "location": {
+      "constant": false,
+      "pos": 13,
+      "type": "float",
+      "unique": false,
+      "generation": {
+        "how": "direct",
+        "kwargs": {
+          "src": "prev",
+          "keys": [
+            "location"
+          ]
+        }
+      }
+    },
+    "percent_speeding_numerator": {
+      "constant": false,
+      "pos": 13,
+      "type": "float",
+      "unique": false,
+      "generation": {
+        "how": "direct",
+        "kwargs": {
+          "src": "prev",
+          "keys": [
+            "location"
+          ]
+        }
+      }
+    },
+    "percent_speeding_denominator": {
+      "constant": false,
+      "pos": 13,
+      "type": "float",
+      "unique": false,
+      "generation": {
+        "how": "direct",
+        "kwargs": {
+          "src": "prev",
+          "keys": [
+            "location"
+          ]
+        }
+      }
+    },
+    "incidents_interstate/freeway": {
+      "constant": false,
+      "pos": 13,
+      "type": "float",
+      "unique": false,
+      "generation": {
+        "how": "direct",
+        "kwargs": {
+          "src": "prev",
+          "keys": [
+            "location"
+          ]
+        }
+      }
+    },
+    "observations_interstate/freeway": {
+      "constant": false,
+      "pos": 13,
+      "type": "float",
+      "unique": false,
+      "generation": {
+        "how": "direct",
+        "kwargs": {
+          "src": "prev",
+          "keys": [
+            "location"
+          ]
+        }
+      }
+    },
+    "incidents_non-interstate/freeway": {
+      "constant": false,
+      "pos": 13,
+      "type": "float",
+      "unique": false,
+      "generation": {
+        "how": "direct",
+        "kwargs": {
+          "src": "prev",
+          "keys": [
+            "location"
+          ]
+        }
+      }
+    },
+    "observations_non-interstate/freeway": {
+      "constant": false,
+      "pos": 13,
+      "type": "float",
+      "unique": false,
+      "generation": {
+        "how": "direct",
+        "kwargs": {
+          "src": "prev",
+          "keys": [
+            "location"
+          ]
+        }
+      }
+    },
+    "difference": {
+      "constant": false,
+      "pos": 15,
+      "type": "int",
+      "unique": false,
+      "generation": {
+        "how": "diff",
+        "kwargs": {
+          "src": "curr",
+          "keys": [
+            "speed",
+            "speed_limit"
+          ]
+        }
+      }
+    }
+  }
+}

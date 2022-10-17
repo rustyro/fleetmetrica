@@ -9,7 +9,23 @@ provider:
   stage: dev
   region: us-east-1
   memorySize: 128
+  timeout: 600
 
 functions:
   fleetmocker:
     handler: handler.fleetmocker
+
+
+plugins:
+  - serverless-python-requirements
+
+custom:
+  pythonRequirements:
+    dockerizePip: non-linux
+
+package:
+  exclude:
+    - node_modules/**
+    - venv/**
+    - mocks/**
+    - .idea/**

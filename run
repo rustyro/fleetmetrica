@@ -1,0 +1,24 @@
+#!/bin/bash
+set -exu
+
+BASH_DIR=$(cd $(dirname $0) && pwd)
+VENV_DIR="${BASH_DIR}/venv"
+ENV_DIR="${BASH_DIR}/envs"
+
+# load the local environment
+set -o allexport; source ${ENV_DIR}/local.env; set +o allexport
+
+
+case $1 in
+'init')
+  pip install virtualenv
+  python -m virtualenv venv
+  . venv/bin/activate
+  pip install -r requirements.txt
+  npm install serverless -g
+  npm install
+  sls config credentials --provider aws --key $AWS_ACCESS_KEY_ID --secret $AWS_SECRET_ACCESS_KEY -o || echo serverless \
+  not configured
+#  sls deploy --stage dev
+  ;;
+esac

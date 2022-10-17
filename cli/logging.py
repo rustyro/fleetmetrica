@@ -1,10 +1,12 @@
 import sys
 import logging
-from cli.config import LOG_FILE_PATH
+from config import LOG_FILE_PATH
 from datetime import datetime
+
 
 open(LOG_FILE_PATH, "w+").close()
 
+logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
 logging.basicConfig(filename=LOG_FILE_PATH,
                     filemode='a',
                     format='%(asctime)s.%(msecs)d, %(name)s, %(levelname)s, %(message)s',
@@ -12,13 +14,20 @@ logging.basicConfig(filename=LOG_FILE_PATH,
                     level=logging.DEBUG)
 
 log = logging.getLogger("CLI")
+console_handler = logging.StreamHandler(sys.stdout)
+console_handler.setFormatter(logFormatter)
+log.addHandler(console_handler)
 
 
 class Logger:
 
     def __init__(self, filename):
         self.console = sys.stdout
-        self.file = open(filename, 'a')
+        try:
+            self.file = open(filename, 'a')
+        except OSError as e:
+            filename = f"/tmp/{filename}"
+            open(filename, "a").close()
 
     def write(self, message):
         if message not in ["", "\n", " "]:

@@ -4,15 +4,17 @@ import argparse
 import sys
 import pandas as pd
 import random
-from .config import db, PGDATABASE, LOG_FILE_PATH, PG_LOG_TABLE
-from cli import config
+from config import db, PGDATABASE, LOG_FILE_PATH, PG_LOG_TABLE, IS_LAMBDA
+import config
 from .logging import Logger as Logr, log
-from sqlalchemy import Table, Column, Integer, DateTime, String, MetaData, Text, inspect, create_engine
+from sqlalchemy import Table, Column, DateTime, String, MetaData, Text, inspect, create_engine
 from typing import List
 from functools import partial
 import re
 from dataclasses import dataclass
 import os
+from dateutil import parser as psr
+from pathlib import Path
 
 
 sys.stdout = Logr(LOG_FILE_PATH)
@@ -20,14 +22,14 @@ parser = argparse.ArgumentParser(
     description='Generate mock trucking data')
 parser.add_argument('-f', '--files', nargs='+', help='path to sample files used for generation')
 parser.add_argument('-dr', '--date_range', help='Date range for the mock dataset (DDMMYY-DDMMYY)')
-parser.add_argument('-ds', '--data_size', default=0, help='Number of records to generate in the dataset')
-parser.add_argument('-s', '--store', default=1, type=int, help='Storage location for the generate files')
+parser.add_argument('-ds', '--data_size', default=0, type=int, help='Number of records to generate in the dataset')
+parser.add_argument('-s', '--store', default="./mocks", type=str, help='Storage location for the generate files')
 parser.add_argument('-c', '--config', help='Datasource configuration type')
-parser.add_argument('-po', '--patter_options', help='Pattern options')
+parser.add_argument('-po', '--pattern_options', help='Pattern options')
 
 
 def ts():
-    return datetime.now().timestamp()
+    return int(datetime.now().timestamp() * 1000)
 
 
 def dt():
@@ -73,10 +75,8 @@ samp = {'UNIQKEY': '1599748724376.317130.234', 'INSERT_DATETIME': '2020-09-10 11
 @dataclass()
 class Argz:
     files = ["./cli/fixtures/PERFORM_20200911.csv"]
-
-
-with open('./cli/configs/performance.json') as pc:
-    gen_conf = json.load(pc)
+    config = 'performance1'
+    date_range = None
 
 
 class MetricObject(object):
@@ -95,20 +95,21 @@ class MetricObject(object):
             setattr(self, k, v)
         return data
 
-    def gen(self, size):
-        last_row = self.data.copy()
+    def gen(self, size, conf, parent_mocks=None):
+        last_row = self.last_row
         curr_row = {}
         rows = []
         for i in range(size):
-            row = self.gen_row()
+            row = self.gen_row(conf)
             rows.append(row)
         df = pd.DataFrame.from_dict(rows)
 
         return df
 
-    def gen_row(self):
+    def gen_row(self, conf: dict = None):
         curr_row = {}
-        for key, conf in self.conf.get("properties").items():
+        conf = conf or self.conf
+        for key, conf in conf.get("properties").items():
             generation = conf.get("generation", {})
             gen_func = getattr(self, generation.get("how", ""), None)
             val = gen_func(**generation.get("kwargs"))
@@ -167,14 +168,23 @@ class CLI(object):
 
     def __init__(self, args: argparse.Namespace):
         end = datetime.now()
-        start = end - timedelta(days=30)
+        start = end - timedelta(days=7)
         self.files = getattr(args, "files", None)
-        self.date_range = getattr(args, "date_range", f"{start.strftime('%d%m%y')}-{end.strftime('%d%m%y')}")
-        self.data_size = getattr(args, "data_size", 2000)
-        self.store = getattr(args, "store", "./mock_data")
+        self.date_range = getattr(args, "date_range", None) or f"{start.strftime('%m-%d-%y')}:{end.strftime('%m-%d-%y')}"
+        self.data_size = getattr(args, "data_size", 2000) or 2000
+        self.records_left = getattr(args, "data_size", 2000) or 2000
+        self.store = getattr(args, "store", "./mocks")
+        self.store_name = self.store
+        self.store = f"/tmp/{self.store}" if IS_LAMBDA else self.store
         self.configs = self.load_configs()
+        self.source_config = getattr(args, "config", None)
         self.pattern_options = getattr(args, "pattern_options", "")
-        self.db_conn = self.init_db()
+        try:
+            self.db_conn = self.init_db()
+        except:
+            log.warning("could not make database connection. Logs will not be save to DB")
+            self.db_conn = None
+        self.drivers = None
 
     @staticmethod
     def init_db():
@@ -210,29 +220,58 @@ class CLI(object):
                 confs[filename.split(".")[0]] = json.load(pc)
         return confs
 
+    def get_drivers(self, driver_df):
+        drivers = [MetricObject(row.to_dict(), {}) for i, row in driver_df.iterrows()]
+        self.drivers = drivers
+
+    def get_daterange(self):
+        """get the dates within the date range"""
+        splitted = self.date_range.split(":")
+        try:
+            start = psr.parse(splitted[0])
+            end = psr.parse(splitted[1])
+        except:
+            msg = "unable to parse date range, please use format: mm-dd-yy:mm:dd:yy"
+            log.error(msg)
+            raise Exception(msg)
+        # print(start, end)
+        if start > end:
+            msg = "Start date cannot be greater than end date"
+            log.error(msg)
+            raise Exception(msg)
+        diff_days = end - start
+        dates = [start + timedelta(days=i) for i in range(diff_days.days) if diff_days]
+        dates = dates if dates else [start]
+        return dates
+
+    def get_number_of_records(self):
+        num = random.randint(1, 50)
+        if num > self.records_left:
+            num = self.records_left
+        return max([1, num])
+
     def run(self):
-        # print("the files", self.files)
-        # 1. load data from the sample files into memory based on the matching configs
-        # gen_conf = None
-        # with open('configs/perfomance.json') as pc:
-        #     gen_conf = json.load(pc)
+        fconfig = self.configs.get(self.source_config)
+
+        if not fconfig:
+            log.error(f"Cannot process {self.files}. Invalid or no configuration specified. Aborting...")
+            return
+
+        files_and_config = {}
+        nof = fconfig.get("no_of_files", 1)
         for f in self.files:
             splitted = f.split(":")
-            if not len(splitted) == 2:
-                log.warning(f"Cannot process {f}, invalid file pattern. Aborting...")
-                continue
+            if not len(splitted) == nof:
+                log.warning(f"Cannot process {f}. Invalid file pattern. Aborting...")
+                return
 
-            fp = splitted[0]
-            fconfig = self.configs.get(splitted[1])
-
-            if not fconfig:
-                log.warning(f"Cannot process {f}, invalid configuration specified. Aborting...")
-
+            filepath = splitted[0]
+            fileconfig = splitted[1] if nof > 1 else self.source_config
             try:
-                df = pd.read_csv(fp)
+                df = pd.read_csv(filepath)
             except Exception as e:
-                log.warning(f"could not load {fp}, bad input file.")
-                continue
+                log.warning(f"could not load {filepath}, bad input file.")
+                return
 
             # drop comment rows
             comment_delimiter = fconfig.get("comment_delimiter", {})
@@ -245,27 +284,52 @@ class CLI(object):
 
             # deduplicate the data
             drivers = df.drop_duplicates([fconfig.get("identifier")])
+            files_and_config[fileconfig] = {"filepath": filepath, "dataframe": drivers}
 
-            mock_df = pd.DataFrame(columns=list(fconfig.get("properties", {}).keys()))
-            for idx, row in drivers.iterrows():
-                ""
-                mo_df = MetricObject(row.to_dict(), fconfig).gen(5)
-                mock_df = pd.concat([mock_df, mo_df])
+            # load drivers
+            if fconfig.get("driver_file_tag") == fileconfig:
+                self.get_drivers(drivers)
 
-            # export to csv
-            fname = fp.split('/')[-1]
-            mock_df.to_csv(f"./mocks/{fname}")
+        for date in self.get_daterange():
 
-        self.flush_logs_to_db()
-        return {"files": self.files}
+            for order in fconfig.get("execution_order", []):
+                mock_df = pd.DataFrame(columns=list(fconfig.get("properties", {}).keys()))
+
+                try:
+                    for driver in self.drivers:
+                        mock_conf = self.configs.get(order)
+                        parent_mocks = None
+                        if depends_on := mock_conf.get("depends_on", None):
+                            parent_mocks = {k: v for k, v in files_and_config.items() if k in depends_on}
+                        size = self.get_number_of_records()
+                        self.records_left -= size
+                        mo_df = driver.gen(size, mock_conf, parent_mocks)
+                        mock_df = pd.concat([mock_df, mo_df])
+                except Exception as e:
+                    log.warning(f"skipped generation of {order}, error: {e}")
+                    continue
+
+                # reset records left
+                self.records_left = self.data_size
+                sort_by = fconfig.get("sort_by", fconfig.get("identifier"))
+                mock_df = mock_df.sort_values(sort_by)
+                files_and_config[order]["mocked_df"] = mock_df
+                # export to csv
+                fp = files_and_config.get(order).get("filepath")
+                fname = fp.split('/')[-1]
+                store_path = f"{self.store}/{str(date.date())}"
+                Path(store_path).mkdir(parents=True, exist_ok=True)
+                mock_df.to_csv(f"{store_path}/{order}.csv", index=False)
+
+        return self
 
     def flush_logs_to_db(self):
         """ Flush all generates logs to the database """
-        log.info("Line before flushing")
-
+        log.info("Cleaning up")
+        if not self.db_conn:
+            return
         with open(LOG_FILE_PATH, "r") as log_file:
             cmd = f'COPY {config.PG_LOG_TABLE}(date, name, level, message) FROM STDIN WITH (FORMAT CSV, HEADER FALSE)'
             conn = self.db_conn.raw_connection()
             conn.cursor().copy_expert(cmd, log_file)
             conn.commit()
-

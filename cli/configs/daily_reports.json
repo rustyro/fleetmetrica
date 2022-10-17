@@ -1,0 +1,10 @@
+{
+  "no_of_files": 2,
+  "driver_file_tag": "summary",
+  "execution_order": ["incident", "summary"],
+  "identifier": "driver_name",
+  "comment_delimiter": {
+    "column": "driver_name",
+    "delimiter": "---"
+  }
+}
